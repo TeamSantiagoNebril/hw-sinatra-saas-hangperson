@@ -38,13 +38,24 @@ class HangpersonApp < Sinatra::Base
   # If a guess is repeated, set flash[:message] to "You have already used that letter."
   # If a guess is invalid, set flash[:message] to "Invalid guess."
   post '/guess' do
-    letter = params[:guess].to_s[0]
-    ### YOUR CODE HERE ###
-    flash[:message] = "You have already used that letter." if @game.guesses.include?(letter) || @game.wrong_guesses.include?(letter)
-    flash[:message] = "invalid" if letter == ""
-    @game.guess(letter)
-    redirect '/show'
-  end
+    begin
+      letter = params[:guess].to_s[0]
+      ### YOUR CODE HERE ###
+      flash[:message] = "You have already used that letter." if @game.guesses.include?(letter) || @game.wrong_guesses.include?(letter)
+      @game.guess(letter)
+      status = @game.check_win_or_lose
+      if(status == :lose)
+        erb :lose
+      elsif(status == :win)
+        erb :win
+      else
+        redirect '/show'
+      end
+    rescue
+        flash[:message] = "Invalid guess"
+        redirect '/show'
+    end
+      end
 
   # Everytime a guess is made, we should eventually end up at this route.
   # Use existing methods in HangpersonGame to check if player has
@@ -53,15 +64,7 @@ class HangpersonApp < Sinatra::Base
   # wrong_guesses and word_with_guesses from @game.
   get '/show' do
     ### YOUR CODE HERE ###
-
     status = @game.check_win_or_lose
-    if(status == :lose)
-      erb :lose
-    elsif(status == :win)
-      erb :win
-    else
-      erb :show # You may change/remove this line
-    end
 
   end
 
